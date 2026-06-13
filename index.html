@@ -31,10 +31,20 @@
   }
   header h1 {
     font-size: 80px; font-weight: 800; color: var(--gold);
-    line-height: 1.06; letter-spacing: -0.025em;
+    line-height: 1.06; letter-spacing: -0.025em; text-align: left;
+    white-space: nowrap;
   }
-  header h1 { text-align: left; }
   header h1 .h1-l2 { display: block; margin-left: 1.05em; }
+
+  /* 모바일 헤더 */
+  @media (max-width: 600px) {
+    header { padding: 16px 16px; }
+    .hdr-inner { gap: 12px; }
+    .hdr-icon { font-size: 44px; margin-top: 4px; }
+    .hdr-eyebrow { font-size: 10px; letter-spacing: 0.1em; margin-bottom: 2px; }
+    header h1 { font-size: clamp(30px, 10vw, 48px); white-space: nowrap; }
+    header h1 .h1-l2 { margin-left: 1.05em; }
+  }
 
   /* 히어로 섹션 */
   .hero {
