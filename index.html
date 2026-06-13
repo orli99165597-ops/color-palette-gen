@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>컬러 팔레트 생성기</title>
+<script type="module" src="https://unpkg.com/@splinetool/viewer@1.9.82/build/spline-viewer.js"></script>
+<style>
+  :root {
+    --navy: #0A1F44;
+    --gold: #D4A84B;
+    --surface: #F7F7F7;
+    --border: #E0E0E0;
+    --text: #1a1a1a;
+    --muted: #666;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--surface); color: var(--text); min-height: 100vh; }
+
+  header {
+    background: var(--navy);
+    padding: 28px 32px;
+    border-bottom: 1px solid rgba(212,168,75,0.2);
+  }
+  .hdr-inner { display: flex; align-items: flex-start; gap: 20px; max-width: 820px; margin: 0 auto; }
+  .hdr-icon { font-size: 72px; line-height: 1; flex-shrink: 0; margin-top: 6px; }
+  .hdr-text { display: flex; flex-direction: column; }
+  .hdr-eyebrow {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.16em;
+    color: rgba(212,168,75,0.55); text-transform: uppercase; margin-bottom: 4px;
+  }
+  header h1 {
+    font-size: 80px; font-weight: 800; color: var(--gold);
+    line-height: 1.06; letter-spacing: -0.025em;
+  }
+  header h1 { text-align: left; }
+  header h1 .h1-l2 { display: block; margin-left: 1.05em; }
+
+  /* 히어로 섹션 */
+  .hero {
+    background: #000;
+    min-height: 520px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: stretch;
+  }
+  /* Spotlight SVG 애니메이션 */
+  @keyframes spotlight {
+    0%   { opacity: 0; transform: translate(-72%, -62%) scale(0.5); }
+    100% { opacity: 1; transform: translate(-50%, -40%) scale(1); }
+  }
+  .hero-spotlight {
+    pointer-events: none;
+    position: absolute;
+    z-index: 1;
+    top: -10%; left: 10%;
+    width: 138%; height: 169%;
+    opacity: 0;
+    animation: spotlight 2s ease forwards 0.3s;
+  }
+  .hero-inner {
+    max-width: 1100px; margin: 0 auto; width: 100%;
+    display: flex; align-items: center;
+    padding: 0; position: relative; z-index: 2;
+  }
+  /* 왼쪽 텍스트 */
+  .hero-left {
+    flex: 1; padding: 56px 40px 56px 32px;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .hero-tag {
+    display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+    color: var(--gold); border: 1px solid rgba(212,168,75,0.4);
+    padding: 5px 14px; border-radius: 20px; margin-bottom: 22px;
+    text-transform: uppercase; width: fit-content;
+  }
+  .hero h2 {
+    font-size: clamp(30px, 5vw, 52px); font-weight: 800; line-height: 1.15;
+    margin-bottom: 16px; letter-spacing: -0.02em;
+    background: linear-gradient(to bottom, #f5f5f5, #aaaaaa);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero h2 em {
+    background: linear-gradient(to bottom, var(--gold), #b8882e);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; font-style: normal;
+  }
+  .hero p {
+    font-size: 15px; color: rgba(255,255,255,0.55); max-width: 360px;
+    margin-bottom: 28px; line-height: 1.75;
+  }
+  .hero-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+  .hero-pill {
+    font-size: 11px; padding: 5px 12px; border-radius: 20px;
+    background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.6);
+    border: 1px solid rgba(255,255,255,0.12);
+  }
+  /* 오른쪽 Spline */
+  .hero-right {
+    flex: 1; position: relative; min-height: 440px;
+  }
+  spline-viewer {
+    width: 100%; height: 100%;
+    display: block;
+    position: absolute; inset: 0;
+  }
+  .spline-loader {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(255,255,255,0.3); font-size: 13px; gap: 10px;
+  }
+  .spin {
+    width: 22px; height: 22px; border-radius: 50%;
+    border: 2px solid rgba(212,168,75,0.3);
+    border-top-color: var(--gold);
+    animation: spin 0.9s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (max-width: 640px) {
+    .hero-inner { flex-direction: column; }
+    .hero-right { min-height: 280px; width: 100%; position: relative; }
+    spline-viewer { position: relative; height: 280px; }
+    .hero-left { padding: 36px 20px 24px; }
+  }
+
+  /* 푸터 */
+  footer {
+    background: var(--navy); color: rgba(255,255,255,0.75);
+    padding: 48px 20px 32px; margin-top: 40px;
+  }
+  .footer-inner { max-width: 820px; margin: 0 auto; }
+  .footer-top { display: flex; gap: 40px; flex-wrap: wrap; margin-bottom: 32px; }
+  .footer-brand { flex: 1; min-width: 200px; }
+  .footer-brand-name { font-size: 22px; font-weight: 800; color: var(--gold); margin-bottom: 6px; }
+  .footer-brand-sub { font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.6; }
+  .footer-links { display: flex; gap: 40px; flex-wrap: wrap; }
+  .footer-col h4 { font-size: 11px; font-weight: 700; color: var(--gold); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 14px; }
+  .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .footer-col li { font-size: 13px; color: rgba(255,255,255,0.65); line-height: 1.5; }
+  .footer-col a { color: rgba(255,255,255,0.65); text-decoration: none; transition: color 0.15s; }
+  .footer-col a:hover { color: var(--gold); }
+  .footer-col .icon { margin-right: 6px; }
+  .footer-divider { border: none; border-top: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
+  .footer-bottom { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+  .footer-copy { font-size: 12px; color: rgba(255,255,255,0.35); }
+  .footer-sns { display: flex; gap: 12px; }
+  .sns-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 600; padding: 7px 14px; border-radius: 20px;
+    text-decoration: none; transition: all 0.15s;
+  }
+  .sns-btn.insta { background: rgba(225,48,108,0.15); color: #E1306C; border: 1px solid rgba(225,48,108,0.3); }
+  .sns-btn.insta:hover { background: #E1306C; color: #fff; }
+  .sns-btn.kakao { background: rgba(254,229,0,0.15); color: #FEE500; border: 1px solid rgba(254,229,0,0.3); }
+  .sns-btn.kakao:hover { background: #FEE500; color: #3C1E1E; }
+
+  .container { max-width: 820px; margin: 0 auto; padding: 20px 16px; }
+
+  .card { background: #fff; border-radius: 12px; border: 1px solid var(--border); padding: 20px; margin-bottom: 20px; }
+  .card-title { font-size: 12px; font-weight: 700; color: var(--navy); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 14px; }
+
+  /* ── 검색 탭 ── */
+  .tab-row { display: flex; gap: 0; margin-bottom: 16px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .tab-btn { flex: 1; height: 40px; border: none; background: #fff; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--muted); transition: all 0.15s; }
+  .tab-btn.active { background: var(--navy); color: var(--gold); }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* 텍스트 입력 */
+  .search-row { display: flex; gap: 8px; }
+  .search-input {
+    flex: 1; height: 46px; border: 1px solid var(--border); border-radius: 8px;
+    padding: 0 14px; font-size: 15px; background: #fff;
+  }
+  .search-input:focus { outline: none; border-color: var(--navy); }
+  .btn-search {
+    height: 46px; padding: 0 20px; background: var(--navy); color: var(--gold);
+    border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;
+  }
+  .btn-search:hover { opacity: 0.85; }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 8px; line-height: 1.6; }
+  .hint b { color: var(--text); }
+
+  /* 이미지 업로드 */
+  .upload-zone {
+    border: 2px dashed var(--border); border-radius: 12px; padding: 40px 20px;
+    text-align: center; cursor: pointer; transition: all 0.2s;
+    position: relative; background: #FAFAFA;
+  }
+  .upload-zone:hover, .upload-zone.drag { border-color: var(--navy); background: #F0F4FF; }
+  .upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .upload-zone .up-icon { font-size: 48px; margin-bottom: 12px; display: block; }
+  .upload-zone .up-title { font-size: 16px; font-weight: 600; color: var(--navy); margin-bottom: 6px; }
+  .upload-zone .up-sub { font-size: 13px; color: var(--muted); }
+  .upload-zone .up-formats { margin-top: 10px; font-size: 11px; color: #bbb; }
+
+  /* 분석 결과 */
+  #imgResult { display: none; margin-top: 16px; }
+  .img-result-row { display: flex; gap: 14px; align-items: flex-start; }
+  #previewImg { width: 140px; height: 140px; object-fit: cover; border-radius: 10px; border: 1px solid var(--border); flex-shrink: 0; }
+  .extracted-panel { flex: 1; }
+  .extracted-label { font-size: 11px; font-weight: 700; color: var(--navy); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 10px; }
+  .extracted-colors { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .ext-chip {
+    display: flex; flex-direction: column; align-items: center; cursor: pointer;
+    border-radius: 8px; overflow: hidden; border: 2px solid transparent;
+    transition: border-color 0.15s, transform 0.1s; width: 52px;
+  }
+  .ext-chip:hover { transform: scale(1.06); }
+  .ext-chip.selected { border-color: var(--navy); }
+  .ext-chip-swatch { width: 52px; height: 44px; }
+  .ext-chip-hex { font-size: 9px; font-family: monospace; color: var(--muted); padding: 3px 0; text-align: center; background: #fff; width: 100%; }
+  .ext-chip-pct { font-size: 9px; color: #bbb; padding-bottom: 3px; }
+  .btn-reupload { font-size: 12px; color: var(--muted); background: none; border: 1px solid var(--border); border-radius: 6px; padding: 5px 12px; cursor: pointer; }
+  .btn-reupload:hover { border-color: var(--navy); color: var(--navy); }
+
+  /* 추천 결과 */
+  .rec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+  .rec-card {
+    background: #fff; border-radius: 10px; border: 1px solid var(--border);
+    overflow: hidden; cursor: pointer; transition: box-shadow 0.15s, transform 0.15s;
+    position: relative;
+  }
+  .rec-card:hover { box-shadow: 0 4px 16px rgba(10,31,68,0.12); transform: translateY(-2px); }
+  .rec-strip { display: flex; height: 56px; }
+  .rec-strip div { flex: 1; }
+  .rec-info { padding: 10px 12px; }
+  .rec-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  .rec-dist { font-size: 11px; color: var(--muted); }
+  .match-badge {
+    position: absolute; top: 6px; right: 6px; background: var(--gold);
+    color: var(--navy); font-size: 10px; font-weight: 700; padding: 2px 7px;
+    border-radius: 20px;
+  }
+  .no-result { font-size: 14px; color: var(--muted); padding: 16px 0; }
+
+  /* ── 생성기 2단계 프롬프트 ── */
+  .prompt-step { margin-bottom: 16px; }
+  .step-label {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; font-weight: 700; color: var(--navy);
+    text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 10px;
+  }
+  .step-num {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--navy); color: var(--gold);
+    font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .step-num.done { background: #2E8B57; color: #fff; }
+  .prompt-row { display: flex; gap: 8px; align-items: center; }
+  .prompt-input {
+    flex: 1; height: 50px; border: 1.5px solid var(--border); border-radius: 10px;
+    padding: 0 16px; font-size: 15px; background: #fff; transition: border-color 0.15s;
+  }
+  .prompt-input:focus { outline: none; border-color: var(--navy); }
+  .prompt-input.locked { background: #f8f8f8; color: var(--muted); }
+  .btn-gen {
+    height: 50px; padding: 0 22px; background: var(--navy); color: var(--gold);
+    border: none; border-radius: 10px; font-size: 14px; font-weight: 700;
+    cursor: pointer; white-space: nowrap; transition: opacity 0.15s; flex-shrink: 0;
+  }
+  .btn-gen:hover { opacity: 0.85; }
+  .btn-pass {
+    height: 50px; padding: 0 20px; background: #fff; color: var(--muted);
+    border: 1.5px solid var(--border); border-radius: 10px; font-size: 14px; font-weight: 600;
+    cursor: pointer; white-space: nowrap; transition: all 0.15s; flex-shrink: 0;
+  }
+  .btn-pass:hover { border-color: var(--navy); color: var(--navy); }
+  .step2-area { display: none; }
+  .step2-area.visible { display: block; }
+  .prompt-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .prompt-chip {
+    font-size: 12px; padding: 4px 12px; border-radius: 20px;
+    border: 1px solid var(--border); background: #fff; color: var(--muted);
+    cursor: pointer; transition: all 0.15s;
+  }
+  .prompt-chip:hover { border-color: var(--navy); color: var(--navy); background: #f0f4ff; }
+
+  /* 생성 결과 */
+  .input-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+  .input-row input[type="color"] {
+    width: 48px; height: 48px; border: 1px solid var(--border); border-radius: 8px;
+    cursor: pointer; padding: 2px; background: #fff;
+  }
+  .hex-input { flex: 1; min-width: 120px; height: 48px; border: 1px solid var(--border); border-radius: 8px; padding: 0 12px; font-size: 15px; font-family: monospace; background: #fff; }
+  .mode-select { height: 48px; border: 1px solid var(--border); border-radius: 8px; padding: 0 12px; font-size: 14px; background: #fff; cursor: pointer; }
+
+  .result-swatches { display: flex; gap: 8px; margin-bottom: 12px; }
+  .swatch-wrap { flex: 1; }
+  .swatch { height: 64px; border-radius: 8px; cursor: pointer; border: 1px solid rgba(0,0,0,0.08); transition: transform 0.1s; }
+  .swatch:hover { transform: scale(1.04); }
+  .swatch-hex { font-size: 11px; color: var(--muted); text-align: center; margin-top: 4px; font-family: monospace; }
+
+  .download-row { display: flex; gap: 8px; }
+  .btn-dl { flex: 1; height: 36px; border: 1px solid var(--border); border-radius: 8px; background: #fff; font-size: 13px; cursor: pointer; color: var(--muted); transition: border-color 0.15s, color 0.15s; }
+  .btn-dl:hover { border-color: var(--navy); color: var(--navy); }
+
+  /* ── 전체 예시 ── */
+  .section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+  .section-header h2 { font-size: 15px; font-weight: 600; color: var(--navy); }
+  .badge { font-size: 11px; background: var(--gold); color: var(--navy); padding: 2px 8px; border-radius: 20px; font-weight: 700; }
+
+  .filter-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+  .filter-btn { padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border); background: #fff; font-size: 12px; cursor: pointer; color: var(--muted); transition: all 0.15s; }
+  .filter-btn:hover { border-color: var(--navy); color: var(--navy); }
+  .filter-btn.active { background: var(--navy); color: var(--gold); border-color: var(--navy); }
+
+  .palette-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+  .palette-card { background: #fff; border-radius: 10px; border: 1px solid var(--border); overflow: hidden; cursor: pointer; transition: box-shadow 0.15s, transform 0.15s; }
+  .palette-card:hover { box-shadow: 0 4px 16px rgba(10,31,68,0.12); transform: translateY(-2px); }
+  .palette-strip { display: flex; height: 52px; }
+  .palette-strip div { flex: 1; }
+  .palette-info { padding: 10px 12px; }
+  .palette-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .palette-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+  .palette-tag { font-size: 10px; color: var(--muted); background: var(--surface); padding: 2px 6px; border-radius: 4px; }
+
+  /* 즐겨찾기 */
+  .saved-list { display: flex; flex-direction: column; gap: 8px; }
+  .saved-item { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; }
+  .saved-strip { display: flex; gap: 3px; }
+  .saved-strip div { width: 24px; height: 24px; border-radius: 4px; }
+  .saved-name { font-size: 13px; color: var(--text); flex: 1; }
+  .saved-del { font-size: 12px; color: var(--muted); cursor: pointer; padding: 4px; }
+  .saved-del:hover { color: #c00; }
+  .empty-saved { font-size: 13px; color: var(--muted); padding: 8px 0; }
+
+  .copy-toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--navy); color: var(--gold); padding: 10px 20px; border-radius: 20px; font-size: 14px; font-weight: 500; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 999; }
+  .copy-toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hdr-inner">
+    <div class="hdr-icon">🎨</div>
+    <div class="hdr-text">
+      <p class="hdr-eyebrow">AI 오르리 · Color Studio</p>
+      <h1>컬러 팔레트<br><span class="h1-l2">생성기</span></h1>
+    </div>
+  </div>
+</header>
+
+<!-- 히어로 섹션 -->
+<section class="hero">
+  <!-- Spotlight SVG (aceternity 스타일) -->
+  <svg class="hero-spotlight" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3787 2842" fill="none">
+    <g filter="url(#heroFilter)">
+      <ellipse cx="1924.71" cy="273.501" rx="1924.71" ry="273.501"
+        transform="matrix(-0.822377 -0.568943 -0.568943 0.822377 3631.88 2291.09)"
+        fill="white" fill-opacity="0.18"/>
+    </g>
+    <defs>
+      <filter id="heroFilter" x="0" y="0" width="3785" height="2840"
+        filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+        <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+        <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+        <feGaussianBlur stdDeviation="151" result="effect1_foregroundBlur"/>
+      </filter>
+    </defs>
+  </svg>
+
+  <div class="hero-inner">
+    <!-- 왼쪽: 텍스트 -->
+    <div class="hero-left">
+      <div class="hero-tag">✦ AI 오르리 · Color Tool</div>
+      <h2>색상 하나로<br>완성하는<br><em>조화로운 팔레트</em></h2>
+      <p>메인 컬러를 선택하거나 이미지를 업로드하면 120가지 예시 팔레트 중 딱 맞는 조합을 즉시 추천합니다.</p>
+      <div class="hero-pills">
+        <span class="hero-pill">🎨 120개 팔레트</span>
+        <span class="hero-pill">🖼️ 이미지 색상 추출</span>
+        <span class="hero-pill">✏️ 한국어 색상명</span>
+        <span class="hero-pill">⬇ JSON · CSV</span>
+      </div>
+    </div>
+
+    <!-- 오른쪽: Spline 3D -->
+    <div class="hero-right">
+      <div class="spline-loader" id="splineLoader">
+        <div class="spin"></div>
+        <span>3D 씬 불러오는 중…</span>
+      </div>
+      <spline-viewer
+        url="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
+        events-target="global"
+        onload="document.getElementById('splineLoader').style.display='none'">
+      </spline-viewer>
+    </div>
+  </div>
+</section>
+
+<div class="container">
+
+  <!-- ① 팔레트 추천 검색 -->
+  <div class="card">
+    <div class="card-title">원하는 색상으로 팔레트 추천받기</div>
+    <div class="tab-row">
+      <button class="tab-btn active" onclick="switchTab('text')">✏️ 색상 텍스트 입력</button>
+      <button class="tab-btn" onclick="switchTab('image')">🖼️ 이미지 업로드</button>
+    </div>
+
+    <!-- 텍스트 탭 -->
+    <div class="tab-panel active" id="tabText">
+      <div class="search-row">
+        <input class="search-input" id="searchInput" type="text" placeholder="예: 번트 시엔나, 밝은 코랄, 딥 네이비, 민트..." onkeydown="if(event.key==='Enter')searchByText()">
+        <button class="btn-search" onclick="searchByText()">추천 받기</button>
+      </div>
+      <div class="hint">
+        <b>색상 이름</b>: 번트 시엔나, 코랄, 민트, 네이비, 라벤더, 터키석, 올리브, 카키, 인디고… &nbsp;|&nbsp;
+        <b>수식어</b>: 밝은, 어두운, 연한, 진한, 광택있는, 파스텔, 선명한
+      </div>
+    </div>
+
+    <!-- 이미지 탭 -->
+    <div class="tab-panel" id="tabImage">
+      <div class="upload-zone" id="uploadZone">
+        <input type="file" accept="image/*" id="imageInput" onchange="handleImage(this)">
+        <span class="up-icon">🖼️</span>
+        <div class="up-title">이미지를 드래그하거나 클릭해서 업로드</div>
+        <div class="up-sub">미드저니 스크린샷, 사진, 레퍼런스 이미지 모두 가능</div>
+        <div class="up-formats">JPG · PNG · WEBP · GIF · BMP</div>
+      </div>
+
+      <div id="imgResult">
+        <div class="img-result-row">
+          <img id="previewImg" alt="업로드된 이미지">
+          <div class="extracted-panel">
+            <div class="extracted-label">🎨 추출된 주요 색상 — 클릭하면 팔레트 추천</div>
+            <div class="extracted-colors" id="extractedColors"></div>
+            <button class="btn-reupload" onclick="resetUpload()">↩ 다른 이미지 올리기</button>
+          </div>
+        </div>
+      </div>
+
+      <canvas id="imgCanvas" style="display:none;"></canvas>
+    </div>
+
+    <!-- 추천 결과 -->
+    <div id="recResult" style="margin-top:18px; display:none;">
+      <div style="font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:12px;" id="recTitle">추천 팔레트</div>
+      <div class="rec-grid" id="recGrid"></div>
+    </div>
+  </div>
+
+  <!-- ② 생성기 -->
+  <div class="card">
+    <div class="card-title">팔레트 만들기</div>
+
+    <!-- STEP 1 -->
+    <div class="prompt-step" id="step1">
+      <div class="step-label">
+        <span class="step-num" id="sn1">1</span>
+        내가 쓰고 싶은 색을 입력하세요
+      </div>
+      <div class="prompt-row">
+        <input class="prompt-input" id="promptInput" type="text"
+          placeholder="예: 번트시엔나 / 딥 네이비 / 골드 / #E97451"
+          onkeydown="if(event.key==='Enter') confirmStep1()">
+        <button class="btn-gen" onclick="confirmStep1()">다음 →</button>
+      </div>
+      <div class="prompt-chips">
+        <span class="prompt-chip" onclick="fillPrompt('번트시엔나')">번트시엔나</span>
+        <span class="prompt-chip" onclick="fillPrompt('딥 네이비')">딥 네이비</span>
+        <span class="prompt-chip" onclick="fillPrompt('골드')">골드</span>
+        <span class="prompt-chip" onclick="fillPrompt('코랄')">코랄</span>
+        <span class="prompt-chip" onclick="fillPrompt('라벤더')">라벤더</span>
+        <span class="prompt-chip" onclick="fillPrompt('민트')">민트</span>
+        <span class="prompt-chip" onclick="fillPrompt('버건디')">버건디</span>
+        <span class="prompt-chip" onclick="fillPrompt('머스타드')">머스타드</span>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="prompt-step step2-area" id="step2">
+      <div class="step-label">
+        <span class="step-num" id="sn2">2</span>
+        이 색과 어울렸으면 하는 색이 있나요?
+        <span style="font-size:11px;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;">&nbsp;없으면 패스</span>
+      </div>
+      <div class="prompt-row">
+        <input class="prompt-input" id="extraInput" type="text"
+          placeholder="예: 골드, 크림, 네이비… 없으면 → 패스"
+          onkeydown="if(event.key==='Enter') runGenerate(false)">
+        <button class="btn-gen" onclick="runGenerate(false)">궁합 보기 🎨</button>
+        <button class="btn-pass" onclick="runGenerate(true)">패스 →</button>
+      </div>
+      <div id="step2Preview" style="display:none; margin-top:12px;">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">선택한 두 색의 궁합 미리보기</div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <div id="prev1" style="width:48px;height:48px;border-radius:8px;border:1px solid var(--border);"></div>
+          <div style="font-size:18px;color:var(--muted);">+</div>
+          <div id="prev2" style="width:48px;height:48px;border-radius:8px;border:1px solid var(--border);background:#eee;"></div>
+          <div style="font-size:18px;color:var(--muted);">=</div>
+          <div style="font-size:13px;color:var(--muted);">팔레트 생성</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 히든 컬러피커 (내부 동기화용) -->
+    <input type="color" id="colorPicker" value="#5C7AEA" style="display:none">
+    <input type="text"  id="hexInput"    value="#5C7AEA" style="display:none">
+    <select id="modeSelect" style="display:none">
+      <option value="complementary">보색</option>
+      <option value="analogous">유사색</option>
+      <option value="triadic">삼각</option>
+      <option value="split">분할보색</option>
+      <option value="tetradic">사각형</option>
+    </select>
+
+    <!-- 결과 -->
+    <div id="genResultArea" style="display:none; margin-top:16px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+        <div id="genResultLabel" style="font-size:12px;color:var(--muted);"></div>
+        <button onclick="resetGenerator()" style="font-size:12px;color:var(--muted);background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer;">↩ 다시</button>
+      </div>
+      <div class="result-swatches" id="resultSwatches"></div>
+      <div class="download-row" style="margin-top:12px;">
+        <button class="btn-dl" onclick="downloadJSON()">⬇ JSON</button>
+        <button class="btn-dl" onclick="downloadCSV()">⬇ CSV</button>
+        <button class="btn-dl" onclick="saveToLocal()">🔖 즐겨찾기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ 전체 예시 100개 -->
+  <div>
+    <div class="section-header">
+      <h2>전체 예시 팔레트</h2>
+      <span class="badge">120</span>
+    </div>
+    <div class="filter-row" id="filterRow"></div>
+    <div class="palette-grid" id="paletteGrid"></div>
+  </div>
+
+  <!-- ④ 즐겨찾기 -->
+  <div class="card" style="margin-top:20px;">
+    <div class="card-title">즐겨찾기</div>
+    <div id="savedList"></div>
+  </div>
+</div>
+
+<div class="copy-toast" id="toast"></div>
+
+<!-- 푸터 -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="footer-brand-name">🎨 AI 오르리</div>
+        <div class="footer-brand-sub">색상 하나로 완성하는 조화로운 팔레트<br>크리에이터를 위한 컬러 도구</div>
+      </div>
+      <div class="footer-links">
+        <div class="footer-col">
+          <h4>연락처</h4>
+          <ul>
+            <li><span class="icon">📞</span>010-4712-5597</li>
+            <li><span class="icon">✉️</span><a href="mailto:is9916@naver.com">is9916@naver.com</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>채널</h4>
+          <ul>
+            <li><a href="https://www.instagram.com/duri_um/?igsh=MXV4emE0NzJvN3Bsdw%3D%3D" target="_blank" rel="noopener"><span class="icon">📸</span>인스타그램 @duri_um</a></li>
+            <li><a href="http://pf.kakao.com/_eDxmrn" target="_blank" rel="noopener"><span class="icon">💬</span>카카오 채널</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>제작</h4>
+          <ul>
+            <li>오르리</li>
+            <li style="font-size:12px;color:rgba(255,255,255,0.4);">Powered by AI 오르리</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <hr class="footer-divider">
+
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2025 AI 오르리. All rights reserved.</div>
+      <div class="footer-sns">
+        <a class="sns-btn insta"
+           href="https://www.instagram.com/duri_um/?igsh=MXV4emE0NzJvN3Bsdw%3D%3D"
+           target="_blank" rel="noopener">
+          📸 Instagram
+        </a>
+        <a class="sns-btn kakao"
+           href="http://pf.kakao.com/_eDxmrn"
+           target="_blank" rel="noopener">
+          💬 카카오톡
+        </a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+// ─────────────────────────────────────────────
+// 데이터
+// ─────────────────────────────────────────────
+const PALETTES = [
+  {name:"선셋 오렌지",tags:["따뜻한"],colors:["#FF6B35","#F7C59F","#EFEFD0","#004E89","#1A936F"]},
+  {name:"황금빛 오후",tags:["따뜻한"],colors:["#E9C46A","#F4A261","#E76F51","#264653","#2A9D8F"]},
+  {name:"코랄 드림",tags:["따뜻한"],colors:["#FF6B6B","#FFA07A","#FFD166","#06D6A0","#118AB2"]},
+  {name:"벽돌과 모래",tags:["따뜻한"],colors:["#A0522D","#CD853F","#DEB887","#F5DEB3","#FAEBD7"]},
+  {name:"오텀 포레스트",tags:["따뜻한","자연"],colors:["#8B2500","#C44B00","#E68A00","#B5A642","#6B8E23"]},
+  {name:"테라코타",tags:["따뜻한"],colors:["#E07A5F","#F2CC8F","#81B29A","#3D405B","#F4F1DE"]},
+  {name:"선셋 핑크",tags:["따뜻한","파스텔"],colors:["#FFADAD","#FFD6A5","#FDFFB6","#CAFFBF","#9BF6FF"]},
+  {name:"매운 칠리",tags:["따뜻한"],colors:["#6D0000","#A30000","#C00000","#D62839","#FF595E"]},
+  {name:"캐러멜 라떼",tags:["따뜻한"],colors:["#4E1B00","#7B3F00","#A0522D","#C68642","#F5DEB3"]},
+  {name:"로즈골드",tags:["따뜻한","모던"],colors:["#B76E79","#C49A8A","#D4A76A","#E8D5B7","#F9EFE3"]},
+  {name:"딥 오션",tags:["차가운"],colors:["#03045E","#0077B6","#00B4D8","#90E0EF","#CAF0F8"]},
+  {name:"아이스 민트",tags:["차가운","파스텔"],colors:["#A8DADC","#457B9D","#1D3557","#E63946","#F1FAEE"]},
+  {name:"미드나잇 블루",tags:["차가운","모던"],colors:["#0A1F44","#1B3A6B","#3A6EA8","#6FA3D0","#A8D0EC"]},
+  {name:"겨울 하늘",tags:["차가운"],colors:["#E8F4FD","#B8D4E8","#7BAFD4","#3A82BD","#1A5A9E"]},
+  {name:"퍼플 갤럭시",tags:["차가운"],colors:["#240046","#3C096C","#5A189A","#7B2FBE","#9D4EDD"]},
+  {name:"네온 사이버",tags:["차가운","모던"],colors:["#0D0221","#190132","#2D1B69","#00F5FF","#7B00FF"]},
+  {name:"북극 오로라",tags:["차가운"],colors:["#00BBF9","#00F5D4","#9B5DE5","#F15BB5","#FEE440"]},
+  {name:"스틸 블루",tags:["차가운","모던"],colors:["#1F3A5F","#2D5F8A","#4A90D9","#7BB8F5","#C5DFF8"]},
+  {name:"라벤더 미스트",tags:["차가운","파스텔"],colors:["#E9E4F0","#D3C5E5","#B19CD9","#836FD8","#5C4FBF"]},
+  {name:"틸 앤 퍼플",tags:["차가운"],colors:["#008080","#009999","#6A0572","#AB83A1","#D4B8E0"]},
+  {name:"포레스트 그린",tags:["자연"],colors:["#1A3A1A","#2D5A27","#4A7C59","#6FAF7B","#A8D5A2"]},
+  {name:"사바나",tags:["자연"],colors:["#8B6914","#C49A3C","#E8D49E","#8A9E5A","#4E7A3F"]},
+  {name:"이끼와 돌",tags:["자연"],colors:["#5A4A42","#7D6E65","#A89080","#8B9467","#6B7A45"]},
+  {name:"봄 꽃밭",tags:["자연","파스텔"],colors:["#FFD1DC","#C8E6C9","#BBDEFB","#FFF9C4","#F3E5F5"]},
+  {name:"해변 모래",tags:["자연"],colors:["#F5DEB3","#DEB887","#C19A6B","#5F9EA0","#2E8B57"]},
+  {name:"대나무 숲",tags:["자연"],colors:["#3B6E2B","#5B8C3E","#7BAF55","#9FCA78","#C8E6A0"]},
+  {name:"가을 낙엽",tags:["자연","따뜻한"],colors:["#8B2500","#B8400A","#D2691E","#DAA520","#6B8E23"]},
+  {name:"고요한 호수",tags:["자연","차가운"],colors:["#264653","#2A9D8F","#57CC99","#80FFDB","#72EFDD"]},
+  {name:"선인장",tags:["자연"],colors:["#2D6A4F","#52B788","#95D5B2","#D8F3DC","#E9C46A"]},
+  {name:"열대 정글",tags:["자연"],colors:["#004B23","#006400","#007200","#008000","#38B000"]},
+  {name:"모노크롬",tags:["모던"],colors:["#121212","#333333","#555555","#888888","#CCCCCC"]},
+  {name:"머티리얼 블루",tags:["모던"],colors:["#1565C0","#1976D2","#2196F3","#64B5F6","#BBDEFB"]},
+  {name:"다크 모드",tags:["모던"],colors:["#0D0D0D","#1A1A2E","#16213E","#0F3460","#E94560"]},
+  {name:"네온 그린",tags:["모던"],colors:["#0D1B2A","#1B3A4B","#2D6A4F","#40916C","#74C69D"]},
+  {name:"우주 회색",tags:["모던"],colors:["#212121","#424242","#616161","#9E9E9E","#E0E0E0"]},
+  {name:"골드 앤 블랙",tags:["모던"],colors:["#0A0A0A","#1A1A1A","#D4A84B","#E8C97C","#F5F0E0"]},
+  {name:"핫 핑크 팝",tags:["모던"],colors:["#FF0080","#FF4DA6","#FF80C0","#1A1A2E","#16213E"]},
+  {name:"민트 앤 차콜",tags:["모던"],colors:["#2F4858","#33658A","#86BBD8","#9EE493","#F6AE2D"]},
+  {name:"코발트 화이트",tags:["모던"],colors:["#003049","#D62828","#F77F00","#FCBF49","#EAE2B7"]},
+  {name:"실버 테크",tags:["모던"],colors:["#0B0C10","#1F2833","#C5C6C7","#66FCF1","#45A29E"]},
+  {name:"70s 그루브",tags:["레트로"],colors:["#C17817","#D4955A","#8B6914","#556B2F","#8B4513"]},
+  {name:"80s 팝",tags:["레트로"],colors:["#FF00FF","#00FFFF","#FFFF00","#FF0000","#0000FF"]},
+  {name:"빈티지 로즈",tags:["레트로"],colors:["#B5838D","#E5989B","#FFCDB2","#FFB4A2","#6D6875"]},
+  {name:"클래식 필름",tags:["레트로"],colors:["#2C1810","#5C3317","#8B6914","#DAA520","#F5DEB3"]},
+  {name:"레트로 민트",tags:["레트로"],colors:["#00B4D8","#90E0EF","#CAF0F8","#03045E","#023E8A"]},
+  {name:"팝아트",tags:["레트로"],colors:["#E63946","#457B9D","#F4D03F","#2ECC71","#9B59B6"]},
+  {name:"빈티지 블루",tags:["레트로"],colors:["#1B4F72","#2980B9","#85C1E9","#D6EAF8","#85929E"]},
+  {name:"세피아",tags:["레트로"],colors:["#704214","#9E6B3C","#C8976B","#E8C9A0","#F5ECD7"]},
+  {name:"카세트 테이프",tags:["레트로"],colors:["#2D0B55","#4A1B8A","#7B2FBE","#C77DFF","#E0AAFF"]},
+  {name:"올드 스쿨 그린",tags:["레트로"],colors:["#004000","#006400","#228B22","#32CD32","#7CFC00"]},
+  {name:"솜사탕",tags:["파스텔"],colors:["#FFAFCC","#BDE0FE","#CDB4DB","#FFC8DD","#A2D2FF"]},
+  {name:"파스텔 레인보우",tags:["파스텔"],colors:["#FFD6A5","#FDFFB6","#CAFFBF","#9BF6FF","#FFB3C6"]},
+  {name:"아이스크림",tags:["파스텔"],colors:["#F9C6C9","#F9E4C8","#F9F5C2","#C8F5C2","#C2D6F5"]},
+  {name:"마카롱",tags:["파스텔"],colors:["#F5B8C4","#B8D4F5","#B8F5C4","#F5E4B8","#D4B8F5"]},
+  {name:"새벽 하늘",tags:["파스텔","차가운"],colors:["#D0E8FF","#B5D0F5","#9AB8EB","#7FA0E1","#6488D7"]},
+  {name:"봄 안개",tags:["파스텔","자연"],colors:["#C8E6C9","#DCEDC8","#F0F4C3","#FFF9C4","#FFF3E0"]},
+  {name:"달콤한 라벤더",tags:["파스텔"],colors:["#E8D5F5","#D5B8EB","#C19AE1","#AD7DD7","#9A60CD"]},
+  {name:"복숭아빛",tags:["파스텔","따뜻한"],colors:["#FFDAB9","#FFB347","#FF8C69","#FA8072","#E9967A"]},
+  {name:"민트 초코",tags:["파스텔"],colors:["#98D8C8","#B8E8D8","#4E342E","#6D4C41","#795548"]},
+  {name:"버블검",tags:["파스텔"],colors:["#FF85A1","#FF9AB0","#FFB0BF","#FFC5CF","#FFDAE0"]},
+  {name:"지중해",tags:["차가운","자연"],colors:["#006994","#0099CC","#00BFFF","#FFFFFF","#FFA500"]},
+  {name:"체리 블라썸",tags:["따뜻한","파스텔"],colors:["#FFB7C5","#FF9999","#FF6B6B","#D4A5A5","#9E7777"]},
+  {name:"골든 아워",tags:["따뜻한"],colors:["#FF7043","#FF8A65","#FFAB40","#FFD54F","#FFF176"]},
+  {name:"머스타드 인디고",tags:["모던"],colors:["#3D0C02","#5C1A0C","#E9C046","#F4D789","#FFF3C4"]},
+  {name:"코코넛",tags:["자연","따뜻한"],colors:["#5B4033","#795548","#A1887F","#D7CCC8","#EFEBE9"]},
+  {name:"베이비 블루",tags:["파스텔","차가운"],colors:["#E3F2FD","#BBDEFB","#90CAF9","#64B5F6","#42A5F5"]},
+  {name:"비취와 금",tags:["모던","따뜻한"],colors:["#004D40","#00695C","#00796B","#D4A84B","#FFD54F"]},
+  {name:"인디언 스파이스",tags:["따뜻한","레트로"],colors:["#8B0000","#B22222","#CD853F","#DAA520","#6B8E23"]},
+  {name:"미모사",tags:["따뜻한","파스텔"],colors:["#FFF8DC","#FFE4B5","#FFD700","#FFA500","#FF8C00"]},
+  {name:"실크 로드",tags:["레트로","따뜻한"],colors:["#8B008B","#9400D3","#C71585","#DC143C","#FF4500"]},
+  {name:"프로방스",tags:["자연","파스텔"],colors:["#9B59B6","#8E44AD","#D7BDE2","#F0E6FA","#ABEBC6"]},
+  {name:"도시의 새벽",tags:["모던","차가운"],colors:["#1A1A2E","#16213E","#0F3460","#E94560","#FF6B6B"]},
+  {name:"녹차 와가시",tags:["자연","파스텔"],colors:["#4CAF50","#81C784","#A5D6A7","#E8F5E9","#C8E6C9"]},
+  {name:"선셋 비치",tags:["따뜻한","자연"],colors:["#FF6B35","#F7B731","#20BF6B","#0FB9B1","#A55EEA"]},
+  {name:"스모키 로즈",tags:["레트로","따뜻한"],colors:["#7B4F4B","#A0706A","#C49A8A","#D4B4A8","#EDD5CC"]},
+  {name:"모노크롬 플러스",tags:["모던"],colors:["#000000","#404040","#808080","#C0C0C0","#FFFFFF"]},
+  {name:"레몬 샤르트뢰즈",tags:["자연","모던"],colors:["#DFFF00","#CFEE00","#8DB600","#4B6600","#1A2400"]},
+  {name:"화이트 스노우",tags:["차가운","파스텔"],colors:["#F0F8FF","#E6F3FF","#CCE7FF","#99CEFF","#66B5FF"]},
+  {name:"매그놀리아",tags:["자연","파스텔"],colors:["#F5F5F0","#E8E4DC","#D4C9B8","#B8A898","#9C8878"]},
+  {name:"다크 오팔",tags:["모던","차가운"],colors:["#0A0A15","#141428","#1E1E3C","#6C63FF","#9C8FFF"]},
+  {name:"터키석",tags:["차가운","자연"],colors:["#00CED1","#20B2AA","#48D1CC","#40E0D0","#7FFFD4"]},
+  {name:"로열 버건디",tags:["레트로","따뜻한"],colors:["#4A0020","#800020","#B22222","#CC5500","#DAA520"]},
+  {name:"봄날의 정원",tags:["자연","파스텔"],colors:["#98FF98","#77DD77","#4CAF50","#FFC0CB","#FFB6C1"]},
+  {name:"카페 모카",tags:["따뜻한","레트로"],colors:["#2C1810","#4A2C2A","#6B3A3A","#8B4513","#A0522D"]},
+  {name:"네온 드림",tags:["모던"],colors:["#FF00FF","#00FFFF","#FF1493","#00FF7F","#FFD700"]},
+  {name:"오키나와",tags:["자연","차가운"],colors:["#006994","#0099CC","#66CCFF","#CCFFCC","#FFFFFF"]},
+  {name:"아마존",tags:["자연"],colors:["#003300","#004400","#005500","#228B22","#32CD32"]},
+  {name:"픽셀 팝",tags:["레트로","모던"],colors:["#FF4444","#FFAA00","#FFFF00","#00CC00","#4444FF"]},
+  {name:"핑크 샴페인",tags:["파스텔","따뜻한"],colors:["#F4C2C2","#F7D9D9","#FFF0EE","#E8B4B8","#C06C84"]},
+  {name:"새벽 안개",tags:["차가운","파스텔"],colors:["#B0C4DE","#C0D8F0","#D0E8FF","#E0F0FF","#F0F8FF"]},
+  {name:"인디고 나이트",tags:["모던","차가운"],colors:["#1A0533","#2D0B69","#3D1099","#6A1FBE","#9B4DCA"]},
+  {name:"황토빛 사막",tags:["따뜻한","자연"],colors:["#C19A6B","#D2B48C","#DEB887","#F5DEB3","#FAEBD7"]},
+  {name:"앤틱 골드",tags:["레트로","따뜻한"],colors:["#856515","#C5A028","#D4B254","#E8CC88","#F5E4C0"]},
+  {name:"번트 시엔나 골드",tags:["따뜻한","레트로"],colors:["#E97451","#C4602D","#8B3A1A","#D4A84B","#F5E0C0"]},
+  {name:"번트 어스",tags:["따뜻한","자연"],colors:["#E97451","#A0522D","#6B3A1A","#8B7355","#C8A882"]},
+  {name:"실크 시엔나",tags:["따뜻한","모던"],colors:["#E97451","#F4A460","#FFDAB9","#2C1810","#1A0A00"]},
+
+  // 금색 5개
+  {name:"클래식 골드",tags:["금색"],colors:["#BF9B30","#D4A84B","#E8C97C","#F5E4B0","#FFFBF0"]},
+  {name:"딥 골드",tags:["금색"],colors:["#7B5A00","#A67C00","#D4A017","#F0C040","#FFF0A0"]},
+  {name:"골드 앤 블랙",tags:["금색","모던"],colors:["#0A0A0A","#1A1A1A","#D4A84B","#E8C97C","#FFF8DC"]},
+  {name:"로즈 골드 메탈",tags:["금색","따뜻한"],colors:["#B76E79","#C4886A","#D4A84B","#E8C97C","#F9EFE3"]},
+  {name:"앤틱 골드 어스",tags:["금색","레트로"],colors:["#3B2800","#6B4600","#A67C00","#D4A84B","#E8D5A0"]},
+
+  // 은색 5개
+  {name:"퓨어 실버",tags:["은색"],colors:["#E8E8E8","#C0C0C0","#A8A8A8","#888888","#4A4A4A"]},
+  {name:"플래티넘",tags:["은색","모던"],colors:["#F0F0F0","#DCDCDC","#B8B8C8","#8890A0","#3C4050"]},
+  {name:"실버 블루",tags:["은색","차가운"],colors:["#C5D8E8","#A8C0D8","#8098B8","#506080","#283040"]},
+  {name:"크롬 다크",tags:["은색","모던"],colors:["#0D0D0D","#1A1A1A","#888888","#C0C0C0","#E8E8E8"]},
+  {name:"문라이트 실버",tags:["은색","파스텔"],colors:["#F8F8FF","#E0E8F0","#C0C8D8","#9098A8","#606878"]},
+
+  // 형광 5개
+  {name:"형광 그린",tags:["형광"],colors:["#00FF41","#39FF14","#00E600","#009900","#003300"]},
+  {name:"형광 핑크",tags:["형광"],colors:["#FF1493","#FF69B4","#FF00FF","#C71585","#4A0020"]},
+  {name:"형광 옐로우",tags:["형광"],colors:["#FFFF00","#F0FF00","#CCFF00","#99CC00","#336600"]},
+  {name:"형광 블루",tags:["형광"],colors:["#00FFFF","#00BFFF","#0080FF","#0040CC","#001A66"]},
+  {name:"형광 오렌지",tags:["형광"],colors:["#FF6600","#FF8C00","#FFB300","#FF4500","#CC2200"]},
+
+  // 파스텔톤 5개
+  {name:"스프링 파스텔",tags:["파스텔"],colors:["#FFD6E0","#FFEFCF","#CBFFD8","#C9E8FF","#E8C9FF"]},
+  {name:"파스텔 선셋",tags:["파스텔","따뜻한"],colors:["#FFB3BA","#FFDFBA","#FFFFBA","#BAFFC9","#BAE1FF"]},
+  {name:"파스텔 오션",tags:["파스텔","차가운"],colors:["#C9E8FF","#BAE1FF","#A8D8FF","#89C4F4","#6BAEEE"]},
+  {name:"파스텔 가든",tags:["파스텔","자연"],colors:["#D4EDDA","#C3E6CB","#B8DFCA","#A8D5C0","#F8F9CC"]},
+  {name:"파스텔 드림",tags:["파스텔"],colors:["#FEC8D8","#D4F0F0","#CCE2CB","#B6CFE0","#FFF1E6"]},
+];
+
+// ─────────────────────────────────────────────
+// 색상명 사전 (한국어 → HEX)
+// ─────────────────────────────────────────────
+const COLOR_DICT = {
+  // 기본
+  "빨간":    "#FF0000", "빨강":    "#FF0000", "레드":    "#DC143C",
+  "파란":    "#0066CC", "파랑":    "#0066CC", "블루":    "#1E90FF",
+  "초록":    "#228B22", "그린":    "#2E8B57",
+  "노란":    "#FFD700", "노랑":    "#FFD700", "옐로우":  "#FFD700",
+  "보라":    "#8B008B", "퍼플":    "#7B2FBE", "바이올렛":"#8A2BE2",
+  "주황":    "#FF7F00", "오렌지":  "#FF6347",
+  "분홍":    "#FFB6C1", "핑크":    "#FF69B4",
+  "갈색":    "#8B4513", "브라운":  "#A0522D",
+  "검정":    "#1A1A1A", "블랙":    "#121212",
+  "흰색":    "#F5F5F5", "화이트":  "#FFFFFF",
+  "회색":    "#808080", "그레이":  "#888888",
+  // 특수 색상명
+  "번트 시엔나":"#E97451", "번트시엔나":"#E97451", "시엔나":"#A0522D",
+  "코랄":    "#FF6B6B", "산호":    "#FF7F7F",
+  "민트":    "#98FF98", "민트그린":"#66CDAA",
+  "라벤더":  "#967BB6", "연보라":  "#B39DDB",
+  "터키석":  "#40E0D0", "터콰이즈":"#30D5C8",
+  "네이비":  "#0A1F44", "남색":    "#001F5B",
+  "골드":    "#D4A84B", "금색":    "#DAA520",
+  "올리브":  "#808000", "카키":    "#C3B091",
+  "인디고":  "#4B0082", "쪽빛":    "#4B6CB7",
+  "크림":    "#FFFDD0", "아이보리":"#FFFFF0",
+  "베이지":  "#F5F5DC", "샌드":    "#C2B280",
+  "버건디":  "#800020", "와인":    "#722F37",
+  "마젠타":  "#FF00FF", "자홍":    "#C71585",
+  "청록":    "#008B8B", "틸":      "#008080",
+  "스카이":  "#87CEEB", "하늘":    "#87CEFA",
+  "연두":    "#9ACD32", "라임":    "#32CD32",
+  "머스타드":"#FFDB58", "겨자":    "#DAA520",
+  "테라코타":"#E07A5F", "점토":    "#CC5533",
+  "세피아":  "#704214", "앤틱":    "#856515",
+  "로즈":    "#FF007F", "장미":    "#FF3366",
+  "복숭아":  "#FFCBA4", "피치":    "#FFDAB9",
+  "스모키":  "#7B6978", "연기":    "#888080",
+  "포레스트":"#228B22", "숲":      "#2D5A27",
+};
+
+// 수식어 → L/S 보정
+const MODIFIERS = {
+  "밝은":    {lDelta:+20, sDelta:0},
+  "연한":    {lDelta:+25, sDelta:-15},
+  "파스텔":  {lDelta:+30, sDelta:-20},
+  "어두운":  {lDelta:-20, sDelta:0},
+  "진한":    {lDelta:-15, sDelta:+10},
+  "딥":      {lDelta:-20, sDelta:+5},
+  "광택있는":{lDelta:0,   sDelta:+25},
+  "선명한":  {lDelta:0,   sDelta:+20},
+  "채도높은":{lDelta:0,   sDelta:+20},
+  "뮤트":    {lDelta:0,   sDelta:-20},
+  "탁한":    {lDelta:0,   sDelta:-15},
+};
+
+// ─────────────────────────────────────────────
+// 색상 유틸
+// ─────────────────────────────────────────────
+function hexToHsl(hex) {
+  let r=parseInt(hex.slice(1,3),16)/255, g=parseInt(hex.slice(3,5),16)/255, b=parseInt(hex.slice(5,7),16)/255;
+  let max=Math.max(r,g,b), min=Math.min(r,g,b), h,s,l=(max+min)/2;
+  if(max===min){h=s=0;}else{
+    let d=max-min; s=l>0.5?d/(2-max-min):d/(max+min);
+    switch(max){case r:h=((g-b)/d+(g<b?6:0))/6;break;case g:h=((b-r)/d+2)/6;break;case b:h=((r-g)/d+4)/6;break;}
+  }
+  return [h*360, s*100, l*100];
+}
+function hslToHex(h,s,l) {
+  h/=360; s/=100; l/=100;
+  let r,g,b;
+  if(s===0){r=g=b=l;}else{
+    const q=l<0.5?l*(1+s):l+s-l*s, p=2*l-q;
+    const f=(t,p,q)=>{if(t<0)t++;if(t>1)t--;if(t<1/6)return p+(q-p)*6*t;if(t<1/2)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p;};
+    r=f(h+1/3,p,q); g=f(h,p,q); b=f(h-1/3,p,q);
+  }
+  return '#'+[r,g,b].map(x=>Math.round(x*255).toString(16).padStart(2,'0')).join('');
+}
+function clamp(v,min,max){return Math.min(Math.max(v,min),max);}
+
+// 두 hex 색상의 HSL 거리
+function hslDist(h1,s1,l1,h2,s2,l2) {
+  const dh=Math.min(Math.abs(h1-h2),360-Math.abs(h1-h2));
+  return Math.sqrt((dh/1.8)**2 + (s1-s2)**2 + (l1-l2)**2);
+}
+
+// 팔레트와 타겟 색상의 최소 거리
+function paletteDist(palette, tH, tS, tL) {
+  return Math.min(...palette.colors.map(c => {
+    const [h,s,l] = hexToHsl(c);
+    return hslDist(h,s,l,tH,tS,tL);
+  }));
+}
+
+// 팔레트 4개 추천
+function recommendPalettes(targetHex) {
+  const [tH,tS,tL] = hexToHsl(targetHex);
+  return PALETTES
+    .map(p => ({...p, dist: paletteDist(p,tH,tS,tL)}))
+    .sort((a,b)=>a.dist-b.dist)
+    .slice(0,4);
+}
+
+// ─────────────────────────────────────────────
+// 텍스트 검색
+// ─────────────────────────────────────────────
+function parseColorText(text) {
+  const t = text.trim().toLowerCase();
+  let baseHex = null;
+  let lDelta = 0, sDelta = 0;
+
+  // 수식어 체크
+  for (const [mod, adj] of Object.entries(MODIFIERS)) {
+    if (t.includes(mod)) { lDelta += adj.lDelta; sDelta += adj.sDelta; }
+  }
+
+  // 색상명 매칭 (긴 이름 우선)
+  const sorted = Object.keys(COLOR_DICT).sort((a,b)=>b.length-a.length);
+  for (const name of sorted) {
+    if (t.includes(name)) { baseHex = COLOR_DICT[name]; break; }
+  }
+
+  // HEX 직접 입력
+  const hexMatch = text.match(/#[0-9A-Fa-f]{6}/);
+  if (hexMatch) baseHex = hexMatch[0];
+
+  if (!baseHex) return null;
+
+  // 수식어 적용
+  if (lDelta !== 0 || sDelta !== 0) {
+    const [h,s,l] = hexToHsl(baseHex);
+    baseHex = hslToHex(h, clamp(s+sDelta,5,95), clamp(l+lDelta,5,95));
+  }
+  return baseHex;
+}
+
+function searchByText() {
+  const raw = document.getElementById('searchInput').value;
+  if (!raw.trim()) return;
+  const hex = parseColorText(raw);
+  if (!hex) {
+    document.getElementById('recResult').style.display = 'block';
+    document.getElementById('recTitle').textContent = `"${raw}" — 인식하지 못한 색상명입니다`;
+    document.getElementById('recGrid').innerHTML = `<div class="no-result">색상명 사전에 없습니다. HEX(#RRGGBB)로 직접 입력해보세요.</div>`;
+    return;
+  }
+  const recs = recommendPalettes(hex);
+  showRecommendations(recs, raw, hex);
+}
+
+let extractedHex = null;
+
+function showRecommendations(recs, label, hex) {
+  document.getElementById('recResult').style.display = 'block';
+  document.getElementById('recTitle').innerHTML =
+    `<span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:${hex};vertical-align:middle;margin-right:6px;border:1px solid #ddd;"></span>
+     "${label}" 추천 팔레트`;
+  document.getElementById('recGrid').innerHTML = recs.map((p,i)=>`
+    <div class="rec-card" onclick="loadPalette(${JSON.stringify(p.colors)})">
+      ${i===0?'<div class="match-badge">베스트</div>':''}
+      <div class="rec-strip">${p.colors.map(c=>`<div style="background:${c}"></div>`).join('')}</div>
+      <div class="rec-info">
+        <div class="rec-name">${p.name}</div>
+        <div class="rec-dist">${p.tags.join(' · ')}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ─────────────────────────────────────────────
+// 이미지 업로드 → 주요 색 5개 추출
+// ─────────────────────────────────────────────
+function handleImage(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.getElementById('previewImg');
+    img.src = e.target.result;
+    img.onload = () => {
+      document.getElementById('uploadZone').style.display = 'none';
+      document.getElementById('imgResult').style.display = 'block';
+      extractTopColors(img);
+    };
+  };
+  reader.readAsDataURL(file);
+}
+
+function extractTopColors(img) {
+  const canvas = document.getElementById('imgCanvas');
+  const SIZE = 120;
+  canvas.width = SIZE; canvas.height = SIZE;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0, SIZE, SIZE);
+  const data = ctx.getImageData(0, 0, SIZE, SIZE).data;
+
+  // 픽셀 → HSL 버킷 클러스터링
+  const buckets = {};
+  let total = 0;
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i], g = data[i+1], b = data[i+2], a = data[i+3];
+    if (a < 128) continue;
+    const hex = '#' + [r,g,b].map(x => x.toString(16).padStart(2,'0')).join('');
+    const [h, s, l] = hexToHsl(hex);
+    // 너무 무채색(채도<12)이거나 너무 어둡/밝으면 제외
+    if (s < 12 || l < 8 || l > 91) continue;
+    // 색조 30°, 채도 25%, 명도 25% 단위로 버킷
+    const hB = Math.round(h / 30) * 30;
+    const sB = Math.round(s / 25) * 25;
+    const lB = Math.round(l / 25) * 25;
+    const key = `${hB}_${sB}_${lB}`;
+    if (!buckets[key]) buckets[key] = { count:0, r:0, g:0, b:0, h:hB };
+    buckets[key].count++; buckets[key].r += r; buckets[key].g += g; buckets[key].b += b;
+    total++;
+  }
+
+  // 색조 30° 간격 기준으로 대표색 선별 (중복 색조 제거)
+  const sorted = Object.values(buckets).sort((a,b) => b.count - a.count);
+  const picked = [];
+  const usedHues = [];
+  for (const bk of sorted) {
+    const tooClose = usedHues.some(uh => {
+      const diff = Math.abs(bk.h - uh);
+      return Math.min(diff, 360 - diff) < 35;
+    });
+    if (!tooClose) {
+      const r = Math.round(bk.r / bk.count);
+      const g = Math.round(bk.g / bk.count);
+      const b = Math.round(bk.b / bk.count);
+      const hex = '#' + [r,g,b].map(x => x.toString(16).padStart(2,'0')).join('');
+      picked.push({ hex, pct: Math.round(bk.count / total * 100) });
+      usedHues.push(bk.h);
+      if (picked.length >= 5) break;
+    }
+  }
+
+  // 5개 미만이면 채도 낮은 색도 포함해서 보완
+  if (picked.length < 3) {
+    for (const bk of sorted) {
+      if (picked.length >= 5) break;
+      const r = Math.round(bk.r / bk.count);
+      const g = Math.round(bk.g / bk.count);
+      const b = Math.round(bk.b / bk.count);
+      const hex = '#' + [r,g,b].map(x => x.toString(16).padStart(2,'0')).join('');
+      if (!picked.find(p => p.hex === hex))
+        picked.push({ hex, pct: Math.round(bk.count / total * 100) });
+    }
+  }
+
+  renderExtractedColors(picked);
+  // 가장 지배적인 색으로 자동 추천
+  if (picked.length) {
+    extractedHex = picked[0].hex;
+    selectExtractedChip(0, picked[0].hex);
+  }
+}
+
+function renderExtractedColors(list) {
+  document.getElementById('extractedColors').innerHTML = list.map((c, i) => `
+    <div class="ext-chip" id="chip${i}" onclick="selectExtractedChip(${i}, '${c.hex}')">
+      <div class="ext-chip-swatch" style="background:${c.hex}"></div>
+      <div class="ext-chip-hex">${c.hex.toUpperCase()}</div>
+      <div class="ext-chip-pct">${c.pct}%</div>
+    </div>`).join('');
+}
+
+function selectExtractedChip(idx, hex) {
+  extractedHex = hex;
+  document.querySelectorAll('.ext-chip').forEach((el, i) => el.classList.toggle('selected', i === idx));
+  const recs = recommendPalettes(hex);
+  showRecommendations(recs, '이미지 추출 색상 ' + hex.toUpperCase(), hex);
+}
+
+function resetUpload() {
+  document.getElementById('uploadZone').style.display = 'block';
+  document.getElementById('imgResult').style.display = 'none';
+  document.getElementById('imageInput').value = '';
+  document.getElementById('recResult').style.display = 'none';
+  extractedHex = null;
+}
+
+// ─────────────────────────────────────────────
+// 탭 전환
+// ─────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',i===(tab==='text'?0:1)));
+  document.getElementById('tabText').classList.toggle('active', tab==='text');
+  document.getElementById('tabImage').classList.toggle('active', tab==='image');
+}
+
+// ─────────────────────────────────────────────
+// 2단계 프롬프트 생성기
+// ─────────────────────────────────────────────
+let step1Hex = null;
+
+function fillPrompt(text) {
+  document.getElementById('promptInput').value = text;
+  document.getElementById('promptInput').focus();
+}
+
+function confirmStep1() {
+  const raw = document.getElementById('promptInput').value.trim();
+  if (!raw) { document.getElementById('promptInput').focus(); return; }
+  const hex = parseColorText(raw);
+  if (!hex) {
+    alert('색상명을 인식하지 못했어요.\n예: 번트시엔나 / 골드 / 딥 네이비 / #E97451');
+    return;
+  }
+  step1Hex = hex;
+  document.getElementById('promptInput').classList.add('locked');
+  document.getElementById('promptInput').readOnly = true;
+  document.getElementById('sn1').textContent = '✓';
+  document.getElementById('sn1').classList.add('done');
+  document.getElementById('step2').classList.add('visible');
+  // 색 미리보기
+  document.getElementById('prev1').style.background = hex;
+  document.getElementById('step2Preview').style.display = 'block';
+  document.getElementById('extraInput').focus();
+  // 두 번째 색 실시간 미리보기
+  document.getElementById('extraInput').oninput = function() {
+    const h2 = parseColorText(this.value.trim());
+    document.getElementById('prev2').style.background = h2 || '#eee';
+  };
+}
+
+function runGenerate(pass) {
+  if (!step1Hex) return;
+  let extraHex = null;
+  if (!pass) {
+    const raw = document.getElementById('extraInput').value.trim();
+    if (raw) extraHex = parseColorText(raw) || null;
+  }
+  document.getElementById('sn2').textContent = '✓';
+  document.getElementById('sn2').classList.add('done');
+  generatePalette(step1Hex, extraHex);
+  const c1name = document.getElementById('promptInput').value;
+  const c2name = document.getElementById('extraInput').value;
+  const label = extraHex
+    ? `${c1name} + ${c2name} 궁합 팔레트`
+    : `${c1name} 팔레트`;
+  document.getElementById('genResultLabel').textContent = '🎨 ' + label;
+  document.getElementById('genResultArea').style.display = 'block';
+}
+
+function resetGenerator() {
+  step1Hex = null;
+  document.getElementById('promptInput').value = '';
+  document.getElementById('promptInput').classList.remove('locked');
+  document.getElementById('promptInput').readOnly = false;
+  document.getElementById('extraInput').value = '';
+  document.getElementById('sn1').textContent = '1';
+  document.getElementById('sn1').classList.remove('done');
+  document.getElementById('sn2').textContent = '2';
+  document.getElementById('sn2').classList.remove('done');
+  document.getElementById('step2').classList.remove('visible');
+  document.getElementById('genResultArea').style.display = 'none';
+}
+
+function generatePalette(baseHex, extraHex) {
+  const raw = baseHex || document.getElementById('hexInput').value.trim();
+  let hex = /^#[0-9A-Fa-f]{6}$/.test(raw) ? raw : parseColorText(raw);
+  if(!hex){alert('색상명을 인식하지 못했어요.\n예: 노랑 / 밝은 코랄 / 번트시엔나 / #FF6B35');return;}
+  document.getElementById('colorPicker').value = hex;
+  document.getElementById('hexInput').value = hex;
+
+  // 두 색 궁합 팔레트: color1 + color2 + 세 가지 조화색
+  if (extraHex) {
+    const [h1,s1,l1] = hexToHsl(hex);
+    const [h2,s2,l2] = hexToHsl(extraHex);
+    // 두 색의 중간 톤 + 밝은 버전 + 어두운 버전
+    const hMid = (h1 + h2) / 2;
+    const sMid = (s1 + s2) / 2;
+    const lMid = (l1 + l2) / 2;
+    const colors = [
+      hex,
+      extraHex,
+      hslToHex(hMid, clamp(sMid - 15, 5, 90), clamp(lMid + 20, 10, 92)),  // 밝은 중간
+      hslToHex(hMid, clamp(sMid + 10, 5, 90), clamp(lMid - 15, 5, 85)),   // 어두운 중간
+      hslToHex(hMid, clamp(sMid - 30, 5, 90), clamp(lMid + 35, 10, 95)),  // 연한 배경색
+    ];
+    generatedColors = colors;
+    renderSwatches(colors);
+    return;
+  }
+  const [h,s,l] = hexToHsl(hex);
+  const mode = document.getElementById('modeSelect').value;
+  let colors;
+  if(mode==='complementary') colors=[hex,hslToHex((h+180)%360,s,l),hslToHex(h,s,clamp(l+20,10,90)),hslToHex((h+180)%360,s,clamp(l+20,10,90)),hslToHex(h,clamp(s-30,10,90),clamp(l+35,10,95))];
+  else if(mode==='analogous') colors=[hslToHex((h-30+360)%360,s,l),hslToHex((h-15+360)%360,s,l),hex,hslToHex((h+15)%360,s,l),hslToHex((h+30)%360,s,l)];
+  else if(mode==='triadic') colors=[hex,hslToHex((h+120)%360,s,l),hslToHex((h+240)%360,s,l),hslToHex(h,s,clamp(l+25,10,90)),hslToHex(h,clamp(s-20,10,90),l)];
+  else if(mode==='split') colors=[hex,hslToHex((h+150)%360,s,l),hslToHex((h+210)%360,s,l),hslToHex(h,s,clamp(l+30,10,90)),hslToHex(h,clamp(s-30,10,90),l)];
+  else colors=[hex,hslToHex((h+90)%360,s,l),hslToHex((h+180)%360,s,l),hslToHex((h+270)%360,s,l),hslToHex(h,s,clamp(l+30,10,90))];
+  generatedColors = colors;
+  renderSwatches(colors);
+}
+
+let generatedColors = [];
+function renderSwatches(colors) {
+  document.getElementById('resultSwatches').innerHTML = colors.map(c=>`
+    <div class="swatch-wrap">
+      <div class="swatch" style="background:${c}" onclick="copyHex('${c}')" title="${c}"></div>
+      <div class="swatch-hex">${c}</div>
+    </div>`).join('');
+}
+function copyHex(hex) {
+  navigator.clipboard.writeText(hex).then(()=>{
+    const t=document.getElementById('toast');
+    t.textContent=hex+' 복사됨!'; t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'),1800);
+  });
+}
+function loadPalette(colors) {
+  generatedColors=colors;
+  document.getElementById('colorPicker').value=colors[0];
+  document.getElementById('hexInput').value=colors[0];
+  renderSwatches(colors);
+  window.scrollTo({top:document.querySelector('.card:nth-child(2)').offsetTop-20,behavior:'smooth'});
+}
+function downloadJSON(){if(!generatedColors.length){alert('먼저 팔레트를 생성하세요');return;}dlFile('palette.json','application/json',JSON.stringify({palette:generatedColors},null,2));}
+function downloadCSV(){if(!generatedColors.length){alert('먼저 팔레트를 생성하세요');return;}dlFile('palette.csv','text/csv','hex\n'+generatedColors.join('\n'));}
+function dlFile(n,t,d){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([d],{type:t}));a.download=n;a.click();}
+function saveToLocal(){
+  if(!generatedColors.length){alert('먼저 팔레트를 생성하세요');return;}
+  const s=JSON.parse(localStorage.getItem('palettes')||'[]');
+  s.unshift({name:'내 팔레트 '+(s.length+1),colors:generatedColors,ts:Date.now()});
+  if(s.length>10)s.pop();
+  localStorage.setItem('palettes',JSON.stringify(s));
+  renderSaved();
+}
+
+// ─────────────────────────────────────────────
+// 전체 팔레트 그리드
+// ─────────────────────────────────────────────
+const TAGS=["전체","따뜻한","차가운","자연","모던","레트로","파스텔","금색","은색","형광"];
+let currentTag="전체";
+function renderFilters(){
+  document.getElementById('filterRow').innerHTML=TAGS.map(t=>`<button class="filter-btn${t===currentTag?' active':''}" onclick="setFilter('${t}')">${t}</button>`).join('');
+}
+function setFilter(tag){currentTag=tag;renderFilters();renderGrid();}
+function renderGrid(){
+  const list=currentTag==='전체'?PALETTES:PALETTES.filter(p=>p.tags.includes(currentTag));
+  document.getElementById('paletteGrid').innerHTML=list.map(p=>`
+    <div class="palette-card" onclick="loadPalette(${JSON.stringify(p.colors)})">
+      <div class="palette-strip">${p.colors.map(c=>`<div style="background:${c}"></div>`).join('')}</div>
+      <div class="palette-info">
+        <div class="palette-name">${p.name}</div>
+        <div class="palette-tags">${p.tags.map(t=>`<span class="palette-tag">${t}</span>`).join('')}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ─────────────────────────────────────────────
+// 즐겨찾기
+// ─────────────────────────────────────────────
+function renderSaved(){
+  const s=JSON.parse(localStorage.getItem('palettes')||'[]');
+  const el=document.getElementById('savedList');
+  if(!s.length){el.innerHTML='<div class="empty-saved">아직 저장된 팔레트가 없습니다.</div>';return;}
+  el.innerHTML='<div class="saved-list">'+s.map((p,i)=>`
+    <div class="saved-item">
+      <div class="saved-strip">${p.colors.map(c=>`<div style="background:${c}"></div>`).join('')}</div>
+      <div class="saved-name">${p.name}</div>
+      <div class="saved-del" onclick="delSaved(${i})">✕</div>
+    </div>`).join('')+'</div>';
+}
+function delSaved(i){const s=JSON.parse(localStorage.getItem('palettes')||'[]');s.splice(i,1);localStorage.setItem('palettes',JSON.stringify(s));renderSaved();}
+
+// 컬러 피커 동기화
+document.getElementById('colorPicker').addEventListener('input',e=>{document.getElementById('hexInput').value=e.target.value.toUpperCase();});
+document.getElementById('hexInput').addEventListener('input',e=>{if(/^#[0-9A-Fa-f]{6}$/.test(e.target.value))document.getElementById('colorPicker').value=e.target.value;});
+
+// 드래그 앤 드롭
+const zone=document.getElementById('uploadZone');
+zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('drag');});
+zone.addEventListener('dragleave',()=>zone.classList.remove('drag'));
+zone.addEventListener('drop',e=>{
+  e.preventDefault(); zone.classList.remove('drag');
+  const f=e.dataTransfer.files[0];
+  if(f&&f.type.startsWith('image/')){
+    const inp=document.getElementById('imageInput');
+    const dt=new DataTransfer(); dt.items.add(f); inp.files=dt.files;
+    handleImage(inp);
+  }
+});
+// 페이지 전체 드래그 → 이미지 탭 자동 전환
+document.addEventListener('dragover',e=>e.preventDefault());
+document.addEventListener('drop',e=>{
+  e.preventDefault();
+  const f=e.dataTransfer.files[0];
+  if(f&&f.type.startsWith('image/')){
+    switchTab('image');
+    const inp=document.getElementById('imageInput');
+    const dt=new DataTransfer(); dt.items.add(f); inp.files=dt.files;
+    handleImage(inp);
+  }
+});
+
+// 초기화
+generatePalette();
+renderFilters();
+renderGrid();
+renderSaved();
+</script>
+</body>
+</html>
