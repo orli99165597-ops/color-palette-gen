@@ -37,6 +37,10 @@
     font-size: 11px; font-weight: 700; letter-spacing: 0.16em;
     color: rgba(212,168,75,0.55); text-transform: uppercase; margin-bottom: 4px;
   }
+  .hdr-desc {
+    font-size: 13px; color: rgba(255,255,255,0.5);
+    margin-top: 8px; line-height: 1.5; font-weight: 400;
+  }
   header h1 {
     font-size: 80px; font-weight: 800; color: #5BBAC4;
     line-height: 1.06; letter-spacing: -0.025em; text-align: left;
@@ -344,6 +348,7 @@
     <div class="hdr-text">
       <p class="hdr-eyebrow">AI 오르리 · Color Studio</p>
       <h1>컬러 팔레트<br><span class="h1-l2">생성기</span></h1>
+      <p class="hdr-desc">이 색이랑 저 색, 같이 쓰면 어울릴까? — 클릭 몇 번으로 바로 확인</p>
     </div>
   </div>
 </header>
@@ -518,7 +523,7 @@
   <div>
     <div class="section-header">
       <h2>전체 예시 팔레트</h2>
-      <span class="badge">120</span>
+      <span class="badge">128</span>
     </div>
     <div class="filter-row" id="filterRow"></div>
     <div class="palette-grid" id="paletteGrid"></div>
@@ -636,6 +641,16 @@ const PALETTES = [
   {name:"세피아",tags:["레트로"],colors:["#704214","#9E6B3C","#C8976B","#E8C9A0","#F5ECD7"]},
   {name:"카세트 테이프",tags:["레트로"],colors:["#2D0B55","#4A1B8A","#7B2FBE","#C77DFF","#E0AAFF"]},
   {name:"올드 스쿨 그린",tags:["레트로"],colors:["#004000","#006400","#228B22","#32CD32","#7CFC00"]},
+
+  // ── 광택 필름 시리즈 ──
+  {name:"오페라 글로시",tags:["광택","따뜻한"],colors:["#1A0010","#CC0044","#FF2060","#FF80A8","#FFE0EC"]},
+  {name:"딥 오페라",tags:["광택","따뜻한"],colors:["#4A001A","#880033","#CC0055","#FF4488","#FFAAC8"]},
+  {name:"샾그린 글로시",tags:["광택","자연"],colors:["#0A1500","#2D6600","#5BA300","#A8D460","#DEFFB0"]},
+  {name:"딥 샾그린",tags:["광택","자연"],colors:["#061000","#1A3D00","#3A7A00","#78C400","#C8F080"]},
+  {name:"세루리언 글로시",tags:["광택","차가운"],colors:["#001133","#1A4D99","#2A7FCC","#70C0E8","#D0F0FF"]},
+  {name:"딥 세루리언",tags:["광택","차가운"],colors:["#000A1A","#003366","#0055AA","#3399DD","#A0D8F8"]},
+  {name:"오페라 × 세루리언",tags:["광택","모던"],colors:["#CC0044","#FF2060","#2A7FCC","#70C0E8","#1A0010"]},
+  {name:"필름 트리오",tags:["광택","모던"],colors:["#FF2060","#5BA300","#2A7FCC","#FFE0EC","#DEFFB0"]},
   {name:"솜사탕",tags:["파스텔"],colors:["#FFAFCC","#BDE0FE","#CDB4DB","#FFC8DD","#A2D2FF"]},
   {name:"파스텔 레인보우",tags:["파스텔"],colors:["#FFD6A5","#FDFFB6","#CAFFBF","#9BF6FF","#FFB3C6"]},
   {name:"아이스크림",tags:["파스텔"],colors:["#F9C6C9","#F9E4C8","#F9F5C2","#C8F5C2","#C2D6F5"]},
@@ -1123,7 +1138,7 @@ function saveToLocal(){
   renderSaved();
 }
 
-const TAGS=["전체","따뜻한","차가운","자연","모던","레트로","파스텔","금색","은색","형광"];
+const TAGS=["전체","따뜻한","차가운","자연","모던","레트로","파스텔","금색","은색","형광","광택"];
 let currentTag="전체";
 function renderFilters(){
   document.getElementById('filterRow').innerHTML=TAGS.map(t=>`<button class="filter-btn${t===currentTag?' active':''}" onclick="setFilter('${t}')">${t}</button>`).join('');
