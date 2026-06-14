@@ -212,7 +212,18 @@
 
   #imgResult { display: none; margin-top: 16px; }
   .img-result-row { display: flex; gap: 14px; align-items: flex-start; }
-  #previewImg { width: 140px; height: 140px; object-fit: cover; border-radius: 10px; border: 1px solid var(--border); flex-shrink: 0; }
+  .img-thumb-wrap { position: relative; width: 140px; height: 140px; flex-shrink: 0; }
+  #previewImg { width: 140px; height: 140px; object-fit: cover; border-radius: 10px; border: 1px solid var(--border); display: block; }
+  .img-delete-btn {
+    position: absolute; top: -8px; right: -8px;
+    width: 24px; height: 24px; border-radius: 50%;
+    background: #ff4d4d; color: #fff; font-size: 14px; line-height: 24px; text-align: center;
+    border: 2px solid #fff; cursor: pointer; font-weight: 700;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    transition: background 0.15s, transform 0.15s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .img-delete-btn:hover { background: #cc0000; transform: scale(1.15); }
   .extracted-panel { flex: 1; }
   .extracted-label { font-size: 11px; font-weight: 700; color: var(--navy); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 10px; }
   .extracted-colors { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
@@ -427,7 +438,10 @@
 
       <div id="imgResult">
         <div class="img-result-row">
-          <img id="previewImg" alt="업로드된 이미지">
+          <div class="img-thumb-wrap">
+            <img id="previewImg" alt="업로드된 이미지">
+            <button class="img-delete-btn" onclick="resetUpload()" title="이미지 삭제">✕</button>
+          </div>
           <div class="extracted-panel">
             <div class="extracted-label">🎨 추출된 주요 색상 — 클릭하면 팔레트 추천</div>
             <div class="extracted-colors" id="extractedColors"></div>
