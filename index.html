@@ -178,7 +178,7 @@ input[type=color]{width:48px;height:48px;border:none;border-radius:10px;cursor:p
   <div class="hero-left">
     <div class="hero-badge"><span>✦ AI 오르리 · COLOR TOOL</span></div>
     <h1 class="hero-title">색상 하나로<br>완성하는<br><em>조화로운 팔레트</em></h1>
-    <p class="hero-desc">메인 컬러를 선택하거나 이미지를 업로드하면<br>160가지 예시 팔레트 중 딱 맞는 조합을 즉시 추천합니다.</p>
+    <p class="hero-desc">메인 컬러를 선택하거나 이미지를 업로드하면<br>167가지 예시 팔레트 중 딱 맞는 조합을 즉시 추천합니다.</p>
     <div class="hero-tags">
       <span class="hero-tag">🎨 160개 팔레트</span>
       <span class="hero-tag">🖼️ 이미지 색상 추출</span>
@@ -257,7 +257,7 @@ input[type=color]{width:48px;height:48px;border:none;border-radius:10px;cursor:p
       <div class="rec-input-row">
         <div class="rec-preview" id="recPreview" style="background:#E8605A" onclick="document.getElementById('recPicker').click()"></div>
         <input type="color" id="recPicker" class="hidden-picker" value="#E8605A">
-        <input type="text" class="rec-hex" id="recHex" value="#E8605A" placeholder="#HEX">
+        <input type="text" class="rec-hex" id="recHex" value="#E8605A" placeholder="#HEX 또는 미숫가루·흑임자">
         <button class="rec-go" onclick="recommend()">✨ 추천받기</button>
       </div>
     </div>
@@ -383,6 +383,17 @@ function rgb2hex(r,g,b){return '#'+[r,g,b].map(v=>Math.min(255,Math.max(0,v)).to
 function cDist(a,b){return (a[0]-b[0])**2+(a[1]-b[1])**2+(a[2]-b[2])**2;}
 function vScore(p){const mx=Math.max(...p),mn=Math.min(...p),s=(mx-mn)/(mx||1),l=(mx+mn)/510;return s*3+(1-Math.abs(l-.5)*2);}
 function colorName(H){if(H<15||H>=345)return '빨강';if(H<40)return '오렌지';if(H<65)return '노랑';if(H<150)return '초록';if(H<175)return '청록';if(H<200)return '시안';if(H<260)return '파랑';if(H<290)return '보라';return '핑크';}
+const COLOR_ALIASES={
+  '미숫가루':'#B3A89A','미숫가루색':'#B3A89A','미숫가루라떼':'#A29789',
+  '흑임자':'#514B47','흑임자색':'#514B47','흑임자라떼':'#605954',
+  '미숫가루흑임자':'#706861','흑임자미숫가루':'#706861'
+};
+function resolveColorInput(input){
+  const raw=input.trim(),key=raw.replace(/[\s·_-]+/g,'').toLowerCase();
+  if(COLOR_ALIASES[key])return{hex:COLOR_ALIASES[key],label:raw};
+  const value=raw.startsWith('#')?raw:'#'+raw;
+  try{return{hex:chroma(value).hex().toUpperCase(),label:null};}catch(e){return null;}
+}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800);}
 function copyHex(hex){navigator.clipboard.writeText(hex.toUpperCase()).then(()=>{showToast(hex+' 복사됨!');copyCount++;localStorage.setItem('copyCount',copyCount);});}
 
@@ -618,11 +629,15 @@ const recPicker=document.getElementById('recPicker');
 const recHex=document.getElementById('recHex');
 const recPreview=document.getElementById('recPreview');
 recPicker.addEventListener('input',()=>{recHex.value=recPicker.value;recPreview.style.background=recPicker.value;recommend();});
-recHex.addEventListener('change',()=>{let v=recHex.value.trim();if(!v.startsWith('#'))v='#'+v;try{chroma(v);recPicker.value=v;recPreview.style.background=v;recommend();}catch(e){}});
+recHex.addEventListener('change',recommend);
+recHex.addEventListener('keydown',e=>{if(e.key==='Enter')recommend();});
 function recommend(){
-  let v=recHex.value.trim();if(!v.startsWith('#'))v='#'+v;
-  let base;try{base=chroma(v);}catch(e){return;}
+  const resolved=resolveColorInput(recHex.value);
+  if(!resolved){showToast('색상명 또는 HEX 코드를 확인하세요');return;}
+  const v=resolved.hex,base=chroma(v);
+  recPicker.value=v;
   recPreview.style.background=v;
+  if(resolved.label)showToast(`${resolved.label} → ${v}`);
   const hue=base.get('hsl.h'),S=Math.max(.4,base.get('hsl.s')),nm=colorName(hue);
   const recs=[
     {name:'보색 대비 조합',tag:'tag-c',tagL:'보색',reason:`${nm} 계열의 반대편 색상으로 강렬한 대비와 에너지감을 줍니다.`,colors:[H(hue,S*.12,.94),H(hue,S*.6,.72),v,H(hue+180,S*.55,.70),H(hue+180,S*.85,.52),H(hue+180,S,.34)]},
