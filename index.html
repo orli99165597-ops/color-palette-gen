@@ -53,12 +53,15 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);min-height:100vh}
 .rec-hero{background:linear-gradient(135deg,var(--navy),#1a3a6e);border-radius:14px;padding:24px;margin-bottom:16px;color:#fff}
 .rec-hero h2{font-size:18px;font-weight:800;color:var(--gold);margin-bottom:4px}
 .rec-hero p{font-size:12px;color:rgba(255,255,255,.7);margin-bottom:14px}
+.rec-label{display:block;font-size:13px;font-weight:800;color:#fff;margin-bottom:8px}
 .rec-input-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .rec-preview{width:48px;height:48px;border-radius:12px;border:2px solid rgba(255,255,255,.3);cursor:pointer;flex-shrink:0}
 .hidden-picker{opacity:0;position:absolute;width:0;height:0}
-.rec-hex{background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.25);border-radius:10px;color:#fff;padding:9px 12px;font-size:14px;font-family:monospace;width:120px;text-align:center}
+.rec-hex{background:#fff;border:2px solid var(--gold);border-radius:10px;color:var(--navy);padding:12px 14px;font-size:15px;font-family:inherit;width:min(360px,100%);text-align:left;font-weight:700}
 .rec-hex:focus{outline:none;border-color:var(--gold)}
 .rec-go{background:var(--gold);color:var(--navy);border:none;border-radius:10px;padding:10px 20px;font-size:14px;font-weight:800;cursor:pointer}
+.rec-examples{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.rec-example{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.35);border-radius:999px;color:#fff;padding:6px 11px;font-size:12px;font-weight:700;cursor:pointer}
 .img-reset-row{display:none;gap:10px;margin-bottom:12px}
 .img-reset-row.show{display:flex}
 .reset-btn{border-radius:10px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;border:none}
@@ -254,11 +257,17 @@ input[type=color]{width:48px;height:48px;border:none;border-radius:10px;cursor:p
     <div class="rec-hero">
       <h2>✨ 고객 색상 추천</h2>
       <p>색상을 입력하거나 이미지를 올려서 색을 뽑아보세요</p>
+      <label class="rec-label" for="recHex">색 이름 또는 색상코드 입력</label>
       <div class="rec-input-row">
         <div class="rec-preview" id="recPreview" style="background:#E8605A" onclick="document.getElementById('recPicker').click()"></div>
         <input type="color" id="recPicker" class="hidden-picker" value="#E8605A">
-        <input type="text" class="rec-hex" id="recHex" value="#E8605A" placeholder="#HEX 또는 미숫가루·흑임자">
+        <input type="text" class="rec-hex" id="recHex" value="" placeholder="예: 미숫가루 흑임자 또는 #706861">
         <button class="rec-go" onclick="recommend()">✨ 추천받기</button>
+      </div>
+      <div class="rec-examples" aria-label="색 이름 빠른 입력">
+        <button class="rec-example" onclick="tryColorName('미숫가루')">미숫가루</button>
+        <button class="rec-example" onclick="tryColorName('흑임자')">흑임자</button>
+        <button class="rec-example" onclick="tryColorName('미숫가루 흑임자')">미숫가루 흑임자</button>
       </div>
     </div>
     <div class="img-reset-row" id="imgResetRow">
@@ -628,11 +637,13 @@ function makePalette(name,colors){
 const recPicker=document.getElementById('recPicker');
 const recHex=document.getElementById('recHex');
 const recPreview=document.getElementById('recPreview');
+function tryColorName(name){recHex.value=name;recommend();}
 recPicker.addEventListener('input',()=>{recHex.value=recPicker.value;recPreview.style.background=recPicker.value;recommend();});
 recHex.addEventListener('change',recommend);
 recHex.addEventListener('keydown',e=>{if(e.key==='Enter')recommend();});
 function recommend(){
-  const resolved=resolveColorInput(recHex.value);
+  const input=recHex.value.trim()||'#E8605A';
+  const resolved=resolveColorInput(input);
   if(!resolved){showToast('색상명 또는 HEX 코드를 확인하세요');return;}
   const v=resolved.hex,base=chroma(v);
   recPicker.value=v;
