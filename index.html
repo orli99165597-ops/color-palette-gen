@@ -656,6 +656,11 @@ function generate(){
   const hue=base.get('hsl.h'),S=Math.max(.4,base.get('hsl.s'));
   const m=(h,s,l)=>H(h,s,l),b=BG(hue,S);
   const dynGroups=[
+    {title:'🥛 사진 속 흑임자 라떼 18단계',pals:[
+      {name:'밝은 유리빛 · 1–6',c:['#F5EBDD','#E8DCCB','#D9CCB9','#C9BBA7','#B7A994','#A59682']},
+      {name:'따뜻한 회갈색 · 7–12',c:['#B3A89A','#A29789','#918679','#80756A','#6E655C','#5D554E']},
+      {name:'흑임자 그림자 · 13–18',c:['#706861','#605954','#514B47','#433E3B','#353230','#272524']},
+    ]},
     {title:'🕴️ 수트용 진회색 단계',pals:[
       {name:'진회색 수트',c:['#E6E8EB','#B7BCC3','#939BA6','#68707B','#4A5059','#23262B']},
     ]},
@@ -866,6 +871,7 @@ function renderAllGroups(){
   allGroups.forEach(g=>{
     total+=g.pals.length;
     const sec=document.createElement('div');sec.style.marginBottom='28px';
+    if(g.title.includes('사진 속 흑임자 라떼')){sec.id='sesame-latte';sec.style.scrollMarginTop='84px';}
     const hdr=document.createElement('div');hdr.className='section-hdr';
     hdr.innerHTML=`<span class="section-title">${g.title}</span><span class="section-count">${g.pals.length}가지</span>`;
     sec.appendChild(hdr);
@@ -911,6 +917,10 @@ glowPals.forEach(p=>glowGrid.appendChild(makePalette(p.name,p.c)));
 document.getElementById('savedCount').textContent=savedPalettes.length;
 recommend();
 generate();
+if(location.hash==='#sesame-latte'){
+  goTab('all');
+  requestAnimationFrame(()=>document.getElementById('sesame-latte')?.scrollIntoView({block:'start'}));
+}
 </script>
 </body>
 </html>
