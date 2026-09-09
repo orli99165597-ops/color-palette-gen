@@ -79,10 +79,14 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);min-height:100vh}
 .chip-hex{font-size:7px;color:#666;font-family:monospace;margin-top:2px;user-select:text;cursor:text}
 .chip-tag{font-size:7px;font-weight:700;color:#bbb}
 .chip-tag.point{color:var(--gold)}
-.selected-row{display:flex;gap:10px;align-items:center;margin-bottom:10px}
+.selected-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
 #selectedSwatch{width:40px;height:40px;border-radius:8px;border:2px solid #eee;flex-shrink:0;background:#E8605A}
 #selectedHexLabel{font-family:monospace;font-size:15px;font-weight:700;color:var(--navy);user-select:text}
 .apply-btn{background:var(--gold);color:var(--navy);border:none;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer}
+.extract-save-btn{width:48px;height:48px;border:0;border-radius:50%;background:#E53935;color:#fff;font-size:12px;font-weight:800;cursor:pointer;box-shadow:0 5px 14px rgba(229,57,53,.32);transition:background .15s,transform .15s,box-shadow .15s}
+.extract-save-btn:hover{background:#C62828;transform:translateY(-2px);box-shadow:0 7px 18px rgba(198,40,40,.38)}
+.extract-save-btn:active{transform:translateY(0)}
+.extract-save-btn:focus-visible{outline:3px solid rgba(229,57,53,.3);outline-offset:3px}
 .similar-box{display:none;margin-top:10px;padding:10px;background:#f8f8f8;border-radius:10px}
 .similar-box.show{display:block}
 .similar-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
@@ -285,6 +289,7 @@ input[type=color]{width:48px;height:48px;border:none;border-radius:10px;cursor:p
             <div id="selectedSwatch"></div>
             <div id="selectedHexLabel">#E8605A</div>
             <button class="apply-btn" onclick="applyExtracted()">이 색으로 추천받기 →</button>
+            <button class="extract-save-btn" type="button" onclick="saveExtractedPalette()" aria-label="추출 색상 저장" title="추출 색상 저장">저장</button>
           </div>
           <div class="similar-box" id="similarBox">
             <div style="font-size:11px;font-weight:700;color:var(--navy)" id="similarTitle"></div>
@@ -532,6 +537,17 @@ function addImagePalettes(c){
   }catch(e){showToast('오류: '+e.message);}
 }
 
+function saveExtractedPalette(){
+  if(!lastColors||lastColors.length<3){showToast('먼저 이미지에서 색상을 추출하세요');return;}
+  let number=1;
+  while(isSaved(`📸 이미지 추출 색상 ${number}`))number++;
+  const name=`📸 이미지 추출 색상 ${number}`;
+  savedPalettes.push({name,colors:lastColors.slice(0,6)});
+  localStorage.setItem('pal_v5',JSON.stringify(savedPalettes));
+  document.getElementById('savedCount').textContent=savedPalettes.length;
+  showToast(`❤️ 추출 색상 ${Math.min(6,lastColors.length)}개 저장됨!`);
+}
+
 function toggleSave(name,colors,btn){
   const idx=savedPalettes.findIndex(p=>p.name===name);
   if(idx>=0){savedPalettes.splice(idx,1);btn.textContent='♡';btn.classList.remove('saved');showToast('저장 취소');}
@@ -640,6 +656,9 @@ function generate(){
   const hue=base.get('hsl.h'),S=Math.max(.4,base.get('hsl.s'));
   const m=(h,s,l)=>H(h,s,l),b=BG(hue,S);
   const dynGroups=[
+    {title:'🕴️ 수트용 진회색 단계',pals:[
+      {name:'진회색 수트',c:['#E6E8EB','#B7BCC3','#939BA6','#68707B','#4A5059','#23262B']},
+    ]},
     {title:'🌗 보색 조합',pals:[
       {name:'보색 클래식',c:[b,m(hue,S*.7,.68),m(hue,S,.46),m(hue+180,S*.6,.72),m(hue+180,S*.85,.56),m(hue+180,S,.36)]},
       {name:'보색 파스텔 팝',c:[b,m(hue,S*.45,.80),m(hue,S*.7,.60),m(hue+180,S*.45,.80),m(hue+180,S*.7,.64),m(hue+180,S*.9,.46)]},
